@@ -1,0 +1,94 @@
+
+三、消息队列
+1.简介
+	消息队列是消息的链接表，存放在内核中并由消息队列标识符标识。我们将称消息队列为“队列”，
+其标识符为“队列ID”。msgget用于创建一个新队列或打开一个现存的队列。
+msgsnd用于将新消息添加到队列尾端。每个消息包含一个正长整型类型字段，一个非负长度以及实际数据字节（对应于长度）
+所有这些都在将消息添加到队列中，传送给msgsnd国。msgrcv用于从队列中取消息。我们并不一定要以先进先出次序取消息，
+也可以按消息的类型字段取消息。
+
+2.函数介绍
+ftok函数
+#include <sys/types.h>
+#include <sys/ipc.h>
+
+key_t ftok(const char *pathname, int proj_id): // "/home/linux", 'a'
+功能：生成一个key(键值)
+
+msgget函数
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+int msgget(key_t key, int msgflg);
+功能：创建或取得一个消息队列对象
+返回：消息队列对象的id同一个key得到同一个对象
+格式： msgget(key, flag|mode);
+flag:可以是0或者IPC_CREAT(不存在就创建)
+mode:  同文件权限一样
+
+
+msgsnd函数
+int msgsnd(int msqid, const void *msgp, size_t msgsz, int msgflg);
+功能：将msgp消息写入标识为msgid的消息队列
+msgp:
+struct msgbuf{
+	long mtype; // message type, bust be > 0   消息的类型必须大于0
+	char mtext[1];  //message data    长度随意
+}
+msgsz: 要发送的消息的大小，不包括消息的类型占用的4个字节
+msgflg:  如果是0当消息队列为满msgsnd会阻塞
+如果是IPC_NOWAIT当消息队列为满时，不阻塞立即返回
+返回值：成功返回id, 失败返回 -1
+
+
+msgrcv函数
+ssize_t msgrcv(int msqid, void *msgp, size_t msgsz, long msgtyp, int msgflg);
+功能：从标识符为msgid的消息队列里接收一个指定类型的消息，并存储于msgp中，读取后把消息从消息队列中删除
+msgp:存放消息的结构体
+msgsz: 要接收的消息的大小，不包含消息类型占用的4字节
+msgtyp: 为0表示无论什么类型都可以接收
+msgflg: 如果是0标识如果没有指定类型的消息就一直等待，如果是IPC_NOWAIT则表示不等待
+
+
+msgctl函数
+int msgctl(int msqid, int cmd, struct msqid_ds *buf);
+msgctl(msgid, IPC_RMID, NULL); //删除消息队列对象
+
+开发环境 ubuntu2016.4 编译器：gcc
+代码如项目所示：
+编译：
+gcc send.c -o send
+gcc receive.c -o receive
+
+运行：
+先运行./send 
+
+再运行./receive 否则会报msgget error!: No such file or directory
+
+
+
+
+3.详解ftok函数
+a.ftok根据路径名，最取文件信息，再根据这些文件信息及projectID合成key，该路径可以随便设置。
+
+b.该路径必须是存在的，ftok只是根据文件inode在系统内的唯一性来取一个数值，和文件的权限无关。如果路径不存在会返回一个负数，
+例如：
+key_t key = ftok("/Users/aa", '6');
+key = -1067854758
+
+c.proj_id是可以根据自已的约定，随意设置，这个数字，有的称之为project ID；在UNIX系统上，它的取值是1到255.
+
+应用：
+之前开发的客户端项目，需要是一台电脑上只能运行一个客户端，如何实现呢
+可以根据key值来判断
+例如 singleApp.c
+
+
+
+
+https://www.cnblogs.com/liudw-0215/p/8978945.html
+
+
+
+
