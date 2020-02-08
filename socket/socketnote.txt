@@ -1,0 +1,118 @@
+
+四、socket
+前面介绍的进程间通信都是在同一台主机上进行的，而如果是不同的主机，两个进程怎么通信呢，socket就是为了解决这个问题的。
+socket编程即网络编程，有着悠久的历史，因此有一个非常固定的编程套路。
+
+基于TCP的网络编程：
+基于连接，在交互过程中，服务器和客户端要保持连接，不能断开。重发一切出错数据，数据验证，保证数据的正确性，完整性和顺序性。
+缺点是消耗的资源比较大。
+
+基于UPD的网络编程：
+无连接协议，在网络交互过程中不保持连接，只需要在发送数据时连接一下，不重发，验证数据。优点是资源消耗少，数据的可靠性完整性顺序性得不到保证。
+
+1.编程步骤：
+	服务器：
+		1.创建socket(套接字的)
+		2.准备通信地址
+		3.将创建的socket和通信地址绑定 bind()
+		4.监听端口 listen()
+		5.等待客户端连接 accpet()
+		6.通信双方收发数据 read() / write() / send() /recv()
+		7.关闭socket
+	客户端：
+		1.创建socket（套接字）socket()
+		2.准备通信地址
+		3.连接服务器connect()
+		4.收发数据 read() / write()  /send() / recv()
+		5.关闭socket
+
+2.API详解：
+	1.socket()函数
+	int socket(int domain, int type, int protocol)
+	第一个参数domain：AF_UNIX/AF_LOCAL/AF_FILE:本地通信   AF_INET:网络通信ipv4   AF_INET6:网络通信ipv6   注：如果AF换成PF效果一样 (Ubuntu是AF MacOS是PF)
+	第二个参数type： 选择通信类型，主要包括：SOCK_STREAM：TCP，   SOCK_DGRAM：UDP
+	第三个参数protocal: 本来应该指定通信协议，但现在基本废弃，因为协议已经在前面两个参数指定完成，给0即可。
+
+	2.bind()函数
+	int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
+	第一个参数sockfd：要绑定的套接字描述符。
+	第二个参数add：涉及三个数据结构struct sockaddr, sockaddr_un, sockaddr_in
+				sockaddr,主要用于函数参数，不负责存储数据
+				sockaddr_un, 当本地通信时，用于本地通信使用的地址(sys/un.h)
+				sockaddr_in， 当网络通信时，负责存储网络通信的地址数据
+				struct sockaddr_in {
+					sin_family, //用于指定协议族，和socket()的参数保持一致
+					sin_port, //网络通信使用的端口号
+					sim_addr,//存储网络通信的ip地址
+				}
+	第三个参数addrlen：参数占据的内存空间大小
+
+	3.htons
+
+	4.inet_aton
+
+	5.listen()函数
+	int listen(int sockfd, int backlog)
+	第一个参数sockfd:将sockfd参数所标识的套接字为被动模式，使之可以接受连接请求
+	第二个参数backlog:表示未决连接请求队列的最大长度，即允许最多有多少个未决连接请求存在。若服务器的未决连接请求已达到该值，
+					则客房端通过connect()连接服务器的操作将返回-1,且error为ECONNERFUSED。
+					（backlog的大小 是表示内核最大能并发处理的正在进行3次握手，还没有真正建立好连接的socket数量）
+
+	6.accpet()函数
+	int accept(int sockfd, struct sockaddr* addr, socklen_t *addrlen)
+	从sockfd参数所标识套接字对应未决连接请求队列中取出一个连接请求，同时创建一个新的套接字，用于该连接通信，返回套按字的描述符
+	addr和addrlen用于输出连接请求发起者的地址信息
+	返回值：为新创建用于和客户端通信的套接字描述符 失败-1, error
+
+	7.inet_ntoa
+
+	8.recv() 函数
+	ssize_t recv(int socket, void *buffer, size_t length, int flags);
+	flags,通常取0,阻塞收到数据
+		O_NONBLOCK:不阻塞，如果未收到数据，返回错误信息
+	返回值：
+		>0,实际接受数据字节数
+		-1, 出错，error
+		0, 通信的另一端关闭。
+
+	9.send()函数
+	ssize_t send(int socket, const void *buffer, size_t length, int flags);
+	flags:通常取0,阻塞发送
+	O_NONBLOCK:不阻塞，如果未收到数据，返回错误信息
+
+	10 connect()函数
+	int connect(int socket, const struct sockaddr *address, socklen_t address_len);
+	也bind()一样。
+
+https://www.cnblogs.com/jiangson/p/5977601.html
+https://blog.csdn.net/weixin_30706507/article/details/97202925
+https://www.cnblogs.com/developing/articles/10979088.html
+
+编程代码如下：
+
+tcpClient.c  tcpServer.c
+这些操作运运行起来是阻塞的，而且执行完就结束了，
+如何让两端一起运行且不阻塞呢，下面给两端程序添加线程。
+
+
+
+
+
+
+运行环境：
+MacOS10.14.6   ubuntu2016.4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
