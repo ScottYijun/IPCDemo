@@ -41,6 +41,11 @@ pipe函数定义中的fd参数是一个大小为2的一个数组指针。该函�
   （4） pipe这种管道用于两个有亲缘关系的进程之间。eg:父子进程......
 
 
+
+  运行环境 MacOS10.14.6  和 Ubuntu2016.4
+  
+
+
 原文链接：https://blog.csdn.net/ta893115871/article/details/7478779
 
 
