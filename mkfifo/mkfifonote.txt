@@ -25,6 +25,8 @@
 若该管道是阻塞打开，则写操作将一直阻塞到数据可以被写入
 若该管道是非阻塞打开而不能写入全部数据，则读操作进行部分写入或者调用失败。
 
+ 运行环境 MacOS10.14.6  和 Ubuntu2016.4
+
 
 https://www.cnblogs.com/forstudy/archive/2012/03/22/2412415.html
 https://www.cnblogs.com/kunhu/p/3608109.html
