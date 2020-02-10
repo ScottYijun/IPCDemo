@@ -97,15 +97,48 @@ tcpClient.c  tcpServer.c
 
 
 
-
-
 运行环境：
 MacOS10.14.6   ubuntu2016.4
 
 
+=====================================================
+
+select实现高并发服务器
+
+int select(int nfds, fd_set *readfds, fd_set *writefds,fd_set *exceptfds, struct timeval *timeout);
+参数说明：
+nfds: 监听的所有文件描述符中的最大描述符+1(其实内核是轮询查的）)
+readfds:读文件描述符监听集合
+writefds:写文件描述符监听集合
+exceptfds:异常文件描述符监听集合
+timeout:有几个值如下：
+	大于0:设置监听超时时长
+	NULL：阻塞监听
+	0:非阻塞监听
+函数返回值：
+	大于0:所有监听集合（3个）中，满足对应事件的总数
+	0:没有满足的
+	-1:出错error
+看第二个、三个、四个参数的类型fd_set,内核为操作这种集合定义了四个函数，如下：
+void FD_CLR(int fd, fd_set *set);//将一个文件描述符从集合中移除
+int FD_ISSET(int fd, fd_set *set);//判断一个文件描述符是否在一个集合中，返回值：在1, 不在0
+void FD_SET(int fd, fd_set *set);//将监听的文件描述符添加到监听集合中
+void FD_ZERO(fd_set *set);//清空一个文件描述符集合
+
+包裹函数
+这个概念来自UNP，先介绍包裹函数的定义，约定的包裹函数名是实际函数的首字母大写形式。
+例如：
+Socket(int family, int type, int protocal)
+为什么要这么做呢？原因如下：
+（1）检查返回值
+（2）独立错误检查模块
+
+用select实现并发服务器
 
 
-
+https://www.cnblogs.com/liudw-0215/p/9661583.html
+https://blog.csdn.net/u010155023/article/details/53507656
+https://blog.csdn.net/u010155023/article/details/53507788
 
 
 
